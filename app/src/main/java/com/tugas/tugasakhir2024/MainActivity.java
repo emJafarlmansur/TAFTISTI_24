@@ -138,15 +138,15 @@ public class MainActivity extends AppCompatActivity {
                         if (tiker != null && tiker.getTicker() !=null ) {
                             if (idxCryptoPair.equals("btcidr")) {
                                 String askPrice = tiker.getTicker().getSell();
-                                tx4.setText("IDX BTC: " + askPrice); // Update specific TextView
+                                tx4.setText("INDODAX BTC: " + askPrice); // Update specific TextView
                             }
                             if ( idxCryptoPair.equals("ethidr")) {
                                 String askPrice = tiker.getTicker().getSell();
-                                tx5.setText("IDX ETH: " + askPrice);
+                                tx5.setText("INDODAX ETH: " + askPrice);
                             }
                             if ( idxCryptoPair.equals("solidr")) {
                                 String askPrice = tiker.getTicker().getSell();
-                                tx6.setText("IDX SOL: " + askPrice);
+                                tx6.setText("INDODAX SOL: " + askPrice);
                            }
                         } else {
                             Toast.makeText(MainActivity.this, "Data Kosong untuk " + idxCryptoPair, LENGTH_SHORT).show();
