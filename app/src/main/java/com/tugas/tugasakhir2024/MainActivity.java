@@ -87,15 +87,15 @@ public class MainActivity extends AppCompatActivity {
                         if (orderbook != null && orderbook.get(0).getOrderbookUnits() != null && !orderbook.isEmpty()){
                             if (upbCryptoPair.equals("IDR-BTC")) {
                                 int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
-                                tx1.setText("BTC : " + askPrice); // Update specific TextView
+                                tx1.setText("UPBIT BTC : " + askPrice); // Update specific TextView
                             }
                             if ( upbCryptoPair.equals("IDR-ETH")) {
                                 int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
-                                tx2.setText("ETH : " + askPrice);
+                                tx2.setText("UPBIT ETH : " + askPrice);
                             }
                             if ( upbCryptoPair.equals("IDR-SOL")) {
                                 int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
-                                tx3.setText("SOL : " + askPrice);
+                                tx3.setText("UPBIT SOL : " + askPrice);
                             }
 //                            if ( upbCryptoPair.equals("IDR-XRP")) {
 //                                int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
@@ -138,15 +138,15 @@ public class MainActivity extends AppCompatActivity {
                         if (tiker != null && tiker.getTicker() !=null ) {
                             if (idxCryptoPair.equals("btcidr")) {
                                 String askPrice = tiker.getTicker().getSell();
-                                tx4.setText("btc: " + askPrice); // Update specific TextView
+                                tx4.setText("IDX BTC: " + askPrice); // Update specific TextView
                             }
                             if ( idxCryptoPair.equals("ethidr")) {
                                 String askPrice = tiker.getTicker().getSell();
-                                tx5.setText("eth: " + askPrice);
+                                tx5.setText("IDX ETH: " + askPrice);
                             }
                             if ( idxCryptoPair.equals("solidr")) {
                                 String askPrice = tiker.getTicker().getSell();
-                                tx6.setText("sol: " + askPrice);
+                                tx6.setText("IDX SOL: " + askPrice);
                            }
                         } else {
                             Toast.makeText(MainActivity.this, "Data Kosong untuk " + idxCryptoPair, LENGTH_SHORT).show();
@@ -185,15 +185,15 @@ public class MainActivity extends AppCompatActivity {
                         if (orderbookLN != null && orderbookLN.getStatus().equals("ACTIVE") ) {
                             if (lunoCryptoPair.equals("XBTIDR")) {
                                 String askPrice = orderbookLN.getAsk();
-                                tx7.setText("btc: " + askPrice); // Update specific TextView
+                                tx7.setText("LUNO BTC: " + askPrice); // Update specific TextView
                             }
                             if ( lunoCryptoPair.equals("ETHIDR")) {
                                 String askPrice = orderbookLN.getAsk();
-                                tx8.setText("eth: " + askPrice);
+                                tx8.setText("LUNO ETH: " + askPrice);
                             }
                             if (lunoCryptoPair.equals("SOLIDR")) {
                                 String askPrice = orderbookLN.getAsk();
-                                tx9.setText("sol: " + askPrice);
+                                tx9.setText("LUNO SOL: " + askPrice);
                             }
                         } else {
                             Toast.makeText(MainActivity.this, "Data Kosong untuk " + lunoCryptoPair, LENGTH_SHORT).show();
@@ -232,15 +232,15 @@ public class MainActivity extends AppCompatActivity {
                             if (orderbookTKO != null && orderbookTKO.getData() !=null ) {
                                 if (tkoCryptoPair.equals("BTC_IDR")) {
                                     String askPrice = orderbookTKO.getData().getBids().get(0).get(0);
-                                    tx10.setText("SOL: " + askPrice); // Update specific TextView
+                                    tx10.setText("TKO BTC: " + askPrice); // Update specific TextView
                                 }
                                 if ( tkoCryptoPair.equals("ETH_IDR")) {
                                     String askPrice = orderbookTKO.getData().getBids().get(0).get(0);
-                                    tx11.setText("eth: " + askPrice);
+                                    tx11.setText("TKO ETH: " + askPrice);
                                 }
                                 if (tkoCryptoPair.equals("SOL_IDR")) {
                                     String askPrice = orderbookTKO.getData().getBids().get(0).get(0);
-                                    tx12.setText("sol: " + askPrice);
+                                    tx12.setText("TKO SOL: " + askPrice);
                                 }
                             } else {
                                 Toast.makeText(MainActivity.this, "Data Kosong untuk " + tkoCryptoPair, LENGTH_SHORT).show();
