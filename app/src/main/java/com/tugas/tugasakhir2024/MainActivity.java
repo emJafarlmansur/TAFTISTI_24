@@ -15,6 +15,9 @@ import com.tugas.tugasakhir2024.INDODAX.Tiker;
 import com.tugas.tugasakhir2024.LUNO.ApiClientLUNO;
 import com.tugas.tugasakhir2024.LUNO.InterfaceLUNO;
 import com.tugas.tugasakhir2024.LUNO.OrderbookLN;
+import com.tugas.tugasakhir2024.REKU.ApiClientREKU;
+import com.tugas.tugasakhir2024.REKU.InterfaceREKU;
+import com.tugas.tugasakhir2024.REKU.OrderbookRK;
 import com.tugas.tugasakhir2024.TOKOCRYPTO.ApiClientTKO;
 import com.tugas.tugasakhir2024.TOKOCRYPTO.InterfaceTKO;
 import com.tugas.tugasakhir2024.TOKOCRYPTO.OrderbookTKO;
@@ -34,13 +37,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String[] UPBIT_PAIRS = {"IDR-BTC", "IDR-ETH", "IDR-SOL"};
     private static final String[] LUNO_PAIRS = {"XBTIDR", "ETHIDR", "SOLIDR"};
     private static final String[] TOKOCRYPTO_PAIRS = {"BTC_IDR","ETH_IDR","SOL_IDR"};
+    private static final String[] REKU_PAIRS = {"1","51","4"};
 
     private static InterfaceTKO interfaceTKO= ApiClientTKO.getClient().create(InterfaceTKO.class);
-
+    private static InterfaceREKU interfaceRKU= ApiClientREKU.getClient().create(InterfaceREKU.class);
     private static InterfaceIDX interfaceIDX = ApiClientIDX.getClient().create(InterfaceIDX.class);
     private static InterfaceUPBIT interfaceUPBIT = ApiClientUPBIT.getClient().create(InterfaceUPBIT.class);
     private static InterfaceLUNO interfaceLUNO = ApiClientLUNO.getClient().create(InterfaceLUNO.class);
-    private TextView tx1, tx2, tx3, tx4,tx5,tx6,tx7,tx8,tx9,tx10,tx11,tx12;
+    private TextView tx1, tx2, tx3, tx4,tx5,tx6,tx7,tx8,tx9,tx10,tx11,tx12,tx13;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +63,13 @@ public class MainActivity extends AppCompatActivity {
         tx10=findViewById(R.id.txt10);
         tx11=findViewById(R.id.txt11);
         tx12=findViewById(R.id.txt12);
+        tx13=findViewById(R.id.txt13);
 
         getTKOPrices();
       getUPBprc();
      getIDXprc();
      getLUNOprc();
+     getREKUprc();
 
     }
 
@@ -260,4 +266,52 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+    //---REKU
+    private void getREKUprc() {
+        for (String rekuCryptoPair : REKU_PAIRS) {
+            getHrgREKU(rekuCryptoPair);
+        }
+    }
+    private void getHrgREKU(String rekuCryptoPair) {
+        interfaceRKU.getPriceRKu(rekuCryptoPair).enqueue(new Callback<OrderbookRK>() {
+
+            @Override
+            public void onResponse(@NonNull Call<OrderbookRK> call, Response<OrderbookRK> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        OrderbookRK orderbookRK = response.body();
+
+                        // Check for data availability
+                        if (orderbookRK != null && orderbookRK.getS()!=null){
+                            if (rekuCryptoPair.equals("1")) {
+                                String askPrice = orderbookRK.getS().get(0).get(1);
+                                tx13.setText("REKU BTC: " + askPrice); // Update specific TextView
+                            }
+//                            if ( lunoCryptoPair.equals("ETHIDR")) {
+//                                String askPrice = orderbookLN.getAsk();
+//                                tx8.setText("LUNO ETH: " + askPrice);
+//                            }
+//                            if (lunoCryptoPair.equals("SOLIDR")) {
+//                                String askPrice = orderbookLN.getAsk();
+//                                tx9.setText("LUNO SOL: " + askPrice);
+//                            }
+                        } else {
+                            Toast.makeText(MainActivity.this, "Data Kosong untuk " + rekuCryptoPair, LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + rekuCryptoPair, LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<OrderbookRK> call, Throwable t) {
+                tx5.setText("error" + t.getMessage());
+            }
+        });
+    }
 }
