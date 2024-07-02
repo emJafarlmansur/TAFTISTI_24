@@ -8,6 +8,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.tugas.tugasakhir2024.INDODAX.ApiClientIDX;
 import com.tugas.tugasakhir2024.INDODAX.InterfaceIDX;
@@ -26,6 +27,7 @@ import com.tugas.tugasakhir2024.UPBIT.InterfaceUPBIT;
 import com.tugas.tugasakhir2024.UPBIT.Orderbook;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -45,85 +47,148 @@ public class MainActivity extends AppCompatActivity {
     private static InterfaceUPBIT interfaceUPBIT = ApiClientUPBIT.getClient().create(InterfaceUPBIT.class);
     private static InterfaceLUNO interfaceLUNO = ApiClientLUNO.getClient().create(InterfaceLUNO.class);
     private TextView tx1, tx2, tx3, tx4,tx5,tx6,tx7,tx8,tx9,tx10,tx11,tx12,tx13;
+    private List<MarketPrice> marketPriceList;
+    private CombinedPriceAdapter  adapterss;
+    private List<Combine> combinedPriceList;
+    RecyclerView recyclerView;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        recyclerView=findViewById(R.id.risaikelKoin);
+       // recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        tx1 = findViewById(R.id.tx1);
-        tx2 = findViewById(R.id.tx2);
-        tx3 = findViewById(R.id.tx3);
-        tx4=findViewById(R.id.tx4);
-        tx5=findViewById(R.id.txt5);
-        tx6=findViewById(R.id.txt6);
-        tx7=findViewById(R.id.txt7);
-        tx8=findViewById(R.id.txt8);
-        tx9=findViewById(R.id.txt9);
-        tx10=findViewById(R.id.txt10);
-        tx11=findViewById(R.id.txt11);
-        tx12=findViewById(R.id.txt12);
-        tx13=findViewById(R.id.txt13);
+        combinedPriceList = new ArrayList<>();
+        adapterss = new CombinedPriceAdapter(combinedPriceList);
+        recyclerView.setAdapter(adapterss);
 
-        getTKOPrices();
-      getUPBprc();
-     getIDXprc();
-     getLUNOprc();
-     getREKUprc();
+        fetchPrices();
+//        tx1 = findViewById(R.id.tx1);
+//        tx2 = findViewById(R.id.tx2);
+//        tx3 = findViewById(R.id.tx3);
+//        tx4=findViewById(R.id.tx4);
+//        tx5=findViewById(R.id.txt5);
+//        tx6=findViewById(R.id.txt6);
+//        tx7=findViewById(R.id.txt7);
+//        tx8=findViewById(R.id.txt8);
+//        tx9=findViewById(R.id.txt9);
+//        tx10=findViewById(R.id.txt10);
+//        tx11=findViewById(R.id.txt11);
+//        tx12=findViewById(R.id.txt12);
+//        tx13=findViewById(R.id.txt13);
+
+//
+//        getTKOPrices();
+ //     getUPBprc();
+ //    getIDXprc();
+//     getLUNOprc();
+//     getREKUprc();
+
+        //TRIAL SCETION
+
 
     }
-
-    //---UPBIT
-    private void getUPBprc() {
-        for (String upbCryptoPair : UPBIT_PAIRS) {
-            getHrgUPB(upbCryptoPair);
+    private void fetchPrices() {
+        for (int i = 0; i < UPBIT_PAIRS.length; i++) {
+            String upbitPair = UPBIT_PAIRS[i];
+            String tokocryptoPair = TOKOCRYPTO_PAIRS[i];
+            fetchPriceForPair(upbitPair, tokocryptoPair);
         }
     }
+    private void fetchPriceForPair(String upbitPair, String tokocryptoPair) {
+        Call<ArrayList<Orderbook>> upbitCall = interfaceUPBIT.getUPB(upbitPair);
+        Call<OrderbookTKO> tokocryptoCall = interfaceTKO.getTKO(tokocryptoPair, 5);
 
-    private void getHrgUPB(String upbCryptoPair) {
-        interfaceUPBIT.getUPB(upbCryptoPair).enqueue(new Callback<ArrayList<Orderbook>>() {
-
+        upbitCall.enqueue(new Callback<ArrayList<Orderbook>>() {
             @Override
-            public void onResponse(@NonNull Call<ArrayList<Orderbook>>call, Response<ArrayList<Orderbook>> response) {
-                if (response.isSuccessful()) {
-                    try {
-                        ArrayList<Orderbook> orderbook = response.body();
+            public void onResponse(@NonNull Call<ArrayList<Orderbook>> call, @NonNull Response<ArrayList<Orderbook>> response) {
+                if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                    String upbitPrice = String.valueOf(response.body().get(0).getOrderbookUnits().get(0).getAskPrice());
 
-                        // Check for data availability
-                        if (orderbook != null && orderbook.get(0).getOrderbookUnits() != null && !orderbook.isEmpty()){
-                            if (upbCryptoPair.equals("IDR-BTC")) {
-                                int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
-                                tx1.setText("UPBIT BTC : " + askPrice); // Update specific TextView
+                    tokocryptoCall.enqueue(new Callback<OrderbookTKO>() {
+                        @Override
+                        public void onResponse(@NonNull Call<OrderbookTKO> call, @NonNull Response<OrderbookTKO> response) {
+                            if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
+                                String tokocryptoPrice = response.body().getData().getBids().get(0).get(0);
+                                combinedPriceList.add(new Combine(upbitPair,upbitPrice,tokocryptoPrice));
+                                adapterss.notifyDataSetChanged();
+                            } else {
+                                Toast.makeText(MainActivity.this, "Failed to load Tokocrypto data for " + tokocryptoPair, Toast.LENGTH_SHORT).show();
                             }
-                            if ( upbCryptoPair.equals("IDR-ETH")) {
-                                int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
-                                tx2.setText("UPBIT ETH : " + askPrice);
-                            }
-                            if ( upbCryptoPair.equals("IDR-SOL")) {
-                                int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
-                                tx3.setText("UPBIT SOL : " + askPrice);
-                            }
-//                            if ( upbCryptoPair.equals("IDR-XRP")) {
-//                                int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
-//                                tx4.setText("XRP: " + askPrice);
-//                            }
-                        } else {
-                            Toast.makeText(MainActivity.this, "Data Kosong untuk " + upbCryptoPair, LENGTH_SHORT).show();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
-                    }
+
+                        @Override
+                        public void onFailure(@NonNull Call<OrderbookTKO> call, @NonNull Throwable t) {
+                            Toast.makeText(MainActivity.this, "Tokocrypto API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 } else {
-                    Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + upbCryptoPair, LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Failed to load UPBIT data for " + upbitPair, Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<ArrayList<Orderbook>> call, Throwable t) {
-                tx1.setText("error"+t.getMessage());
+            public void onFailure(@NonNull Call<ArrayList<Orderbook>> call, @NonNull Throwable t) {
+                Toast.makeText(MainActivity.this, "UPBIT API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
-    });}
+        });
+    }
+
+//    private void getHrgUPB(String upbCryptoPair) {
+//        interfaceUPBIT.getUPB(upbCryptoPair).enqueue(new Callback<ArrayList<Orderbook>>() {
+//
+//            @Override
+//            public void onResponse(@NonNull Call<ArrayList<Orderbook>>call, Response<ArrayList<Orderbook>> response) {
+//                if (response.isSuccessful()) {
+//                    try {
+//                        ArrayList<Orderbook> orderbook = response.body();
+//
+//                        // Check for data availability
+//                        if (orderbook != null && orderbook.get(0).getOrderbookUnits() != null && !orderbook.isEmpty()){
+//                            if (upbCryptoPair.equals("IDR-BTC")) {
+//                                String askPrice = String.valueOf(orderbook.get(0).getOrderbookUnits().get(0).getAskPrice());
+//                                marketPriceList.add(new MarketPrice("UPBIT", "BTC", askPrice));
+//                            }
+//// Update RecyclerView adapter
+////                            if (adapter != null) {
+////                                adapter.setData(marketPriceList);
+//
+//                            }
+//                          //      tx1.setText("UPBIT BTC : " + askPrice); // Update specific TextView
+//
+////                            if ( upbCryptoPair.equals("IDR-ETH")) {
+////                                int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
+////                                tx2.setText("UPBIT ETH : " + askPrice);
+////                            }
+////                            if ( upbCryptoPair.equals("IDR-SOL")) {
+////                                int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
+////                                tx3.setText("UPBIT SOL : " + askPrice);
+////                            }
+////                            if ( upbCryptoPair.equals("IDR-XRP")) {
+////                                int askPrice = orderbook.get(0).getOrderbookUnits().get(0).getAskPrice();
+////                                tx4.setText("XRP: " + askPrice);
+////                            }
+//                        } else {
+//                            Toast.makeText(MainActivity.this, "Data Kosong untuk " + upbCryptoPair, LENGTH_SHORT).show();
+//                        }
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                        Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
+//                    }
+//                } else {
+//                    Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + upbCryptoPair, LENGTH_SHORT).show();
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<ArrayList<Orderbook>> call, Throwable t) {
+//                tx1.setText("error"+t.getMessage());
+//            }
+//    });}
+
 
     //---INDODAX
     private void getIDXprc() {
@@ -141,30 +206,36 @@ public class MainActivity extends AppCompatActivity {
                         Tiker tiker = response.body();
 
                         // Check for data availability
-                        if (tiker != null && tiker.getTicker() !=null ) {
+                        if (tiker != null && tiker.getTicker() != null) {
                             if (idxCryptoPair.equals("btcidr")) {
                                 String askPrice = tiker.getTicker().getSell();
-                                tx4.setText("INDODAX BTC: " + askPrice); // Update specific TextView
+                                //       tx4.setText("INDODAX BTC: " + askprce); // Update specific TextView
+                                marketPriceList.add(new MarketPrice("INDODAX", "BTC", askPrice));
                             }
-                            if ( idxCryptoPair.equals("ethidr")) {
-                                String askPrice = tiker.getTicker().getSell();
-                                tx5.setText("INDODAX ETH: " + askPrice);
+// Update RecyclerView adapter
+                            if (marketPriceList == null ) {
+//                                adapter.setData(marketPriceList);
+
                             }
-                            if ( idxCryptoPair.equals("solidr")) {
-                                String askPrice = tiker.getTicker().getSell();
-                                tx6.setText("INDODAX SOL: " + askPrice);
-                           }
-                        } else {
-                            Toast.makeText(MainActivity.this, "Data Kosong untuk " + idxCryptoPair, LENGTH_SHORT).show();
+//                            if ( idxCryptoPair.equals("ethidr")) {
+//                                String askPrice = tiker.getTicker().getSell();
+//                                tx5.setText("INDODAX ETH: " + askPrice);
+//                            }
+//                            if ( idxCryptoPair.equals("solidr")) {
+//                                String askPrice = tiker.getTicker().getSell();
+//                                tx6.setText("INDODAX SOL: " + askPrice);
+//                           }
+                            } else {
+                                Toast.makeText(MainActivity.this, "Data Kosong untuk " + idxCryptoPair, LENGTH_SHORT).show();
+                            }
+                        } catch(Exception e){
+                            e.printStackTrace();
+                            Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
+                    } else{
+                        Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + idxCryptoPair, LENGTH_SHORT).show();
                     }
-                } else {
-                    Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + idxCryptoPair, LENGTH_SHORT).show();
                 }
-            }
 
             @Override
             public void onFailure(Call<Tiker> call, Throwable t) {
