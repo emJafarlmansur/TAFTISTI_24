@@ -103,11 +103,10 @@ public class MainActivity extends AppCompatActivity {
     private void fetchPrices() {
 
         combinedPriceList.clear();
-        adapterss.notifyDataSetChanged();  // Notify adapter that data set has changed
+   //     adapterss.notifyDataSetChanged();  // Notify adapter that data set has changed
         for (int i = 0; i < UPBIT_PAIRS.length; i++) {
             String upbitPair = UPBIT_PAIRS[i];
             String tokocryptoPair = TOKOCRYPTO_PAIRS[i];
-            fetchPriceForPair(upbitPair, tokocryptoPair);
             boolean isEnabled = sharedPreferences.getBoolean(tokocryptoPair, true);
 
             if (isEnabled) {
