@@ -8,7 +8,7 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardView"
         android:layout_width="match_parent"
-        android:layout_height="90dp"
+        android:layout_height="160dp"
         android:layout_margin="5dp"
         android:background="@color/teal_700"
         app:layout_constraintEnd_toEndOf="parent"
@@ -17,8 +17,9 @@
         android:backgroundTint="#FFEB3B"
         app:layout_constraintTop_toTopOf="parent">
         <!--        app:cardCornerRadius="20dp"-->
+
         <TextView
-            android:id="@+id/marketId"
+            android:id="@+id/IDpair"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
@@ -28,7 +29,7 @@
             app:layout_constraintTop_toTopOf="@+id/cardView" />
 
         <TextView
-            android:id="@+id/koinId"
+            android:id="@+id/IDpremiere"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
@@ -37,13 +38,40 @@
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/hargaId"
+            android:id="@+id/IDscomrkt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
             android:layout_marginTop="58dp"
             android:text="Harga :"
             android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/IDthrmrkt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="58dp"
+            android:text="Harga :"
+            android:textSize="16sp" />
+        <TextView
+            android:id="@+id/IDfoumrkt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="58dp"
+            android:text="Harga :"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/IDfvmrkt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="58dp"
+            android:text="Harga :"
+            android:textSize="16sp" />
+
 
     </com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -22,7 +22,7 @@ public class Ticker {
     private String last;
     @SerializedName("buy")
     @Expose
-    private Integer buy;
+    private String buy;
     @SerializedName("sell")
     @Expose
     private String sell;
@@ -70,11 +70,11 @@ public class Ticker {
         this.last = last;
     }
 
-    public Integer getBuy() {
+    public String getBuy() {
         return buy;
     }
 
-    public void setBuy(Integer buy) {
+    public void setBuy(String buy) {
         this.buy = buy;
     }
 

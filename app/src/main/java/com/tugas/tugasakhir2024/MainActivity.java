@@ -1,7 +1,5 @@
 package com.tugas.tugasakhir2024;
 
-import static android.widget.Toast.LENGTH_SHORT;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -15,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.tugas.tugasakhir2024.INDODAX.ApiClientIDX;
 import com.tugas.tugasakhir2024.INDODAX.InterfaceIDX;
+import com.tugas.tugasakhir2024.INDODAX.Tiker;
 import com.tugas.tugasakhir2024.LUNO.ApiClientLUNO;
 import com.tugas.tugasakhir2024.LUNO.InterfaceLUNO;
 import com.tugas.tugasakhir2024.LUNO.OrderbookLN;
@@ -41,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String[] UPBIT_PAIRS = {"IDR-BTC", "IDR-ETH", "IDR-SOL"};
     private static final String[] LUNO_PAIRS = {"XBTIDR", "ETHIDR", "SOLIDR"};
     private static final String[] TOKOCRYPTO_PAIRS = {"BTC_IDR","ETH_IDR","SOL_IDR"};
-    private static final String[] REKU_PAIRS = {"1","51","4"};
+    private static final String[] REKU_PAIRS = {"1","4","51"};
 
     private static InterfaceTKO interfaceTKO= ApiClientTKO.getClient().create(InterfaceTKO.class);
     private static InterfaceREKU interfaceRKU= ApiClientREKU.getClient().create(InterfaceREKU.class);
@@ -107,16 +106,22 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < UPBIT_PAIRS.length; i++) {
             String upbitPair = UPBIT_PAIRS[i];
             String tokocryptoPair = TOKOCRYPTO_PAIRS[i];
+            String lunoPair=LUNO_PAIRS[i];
+            String indodaxPair=INDODAX_PAIRS[i];
+            String rekuPair=REKU_PAIRS[i];
             boolean isEnabled = sharedPreferences.getBoolean(tokocryptoPair, true);
 
             if (isEnabled) {
-                fetchPriceForPair(upbitPair, tokocryptoPair);
+                fetchPriceForPair(upbitPair, tokocryptoPair, lunoPair, indodaxPair, rekuPair);
             }
         }
     }
-    private void fetchPriceForPair(String upbitPair, String tokocryptoPair) {
+    private void fetchPriceForPair(String upbitPair, String tokocryptoPair, String lunoPair, String indodaxPair, String rekuPair) {
         Call<ArrayList<Orderbook>> upbitCall = interfaceUPBIT.getUPB(upbitPair);
-        Call<OrderbookTKO> tokocryptoCall = interfaceTKO.getTKO(tokocryptoPair, 5);
+     Call<OrderbookTKO> tokocryptoCall = interfaceTKO.getTKO(tokocryptoPair, 5);
+        Call<OrderbookLN>lunoCall= interfaceLUNO.getPriceLUNO(lunoPair);
+        Call<Tiker>indodaxCall=interfaceIDX.getPriceIDX(indodaxPair);
+        Call<OrderbookRK>rekuCall=interfaceRKU.getPriceRKu(rekuPair);
 
         upbitCall.enqueue(new Callback<ArrayList<Orderbook>>() {
             @Override
@@ -129,146 +134,113 @@ public class MainActivity extends AppCompatActivity {
                         public void onResponse(@NonNull Call<OrderbookTKO> call, @NonNull Response<OrderbookTKO> response) {
                             if (response.isSuccessful() && response.body() != null && response.body().getData() != null) {
                                 String tokocryptoPrice = response.body().getData().getBids().get(0).get(0);
-                                combinedPriceList.add(new Combine(upbitPair,upbitPrice,tokocryptoPrice));
-                                adapterss.notifyDataSetChanged();
+                                indodaxCall.enqueue(new Callback<Tiker>() {
+                                    @Override
+                                    public void onResponse(Call<Tiker> call, Response<Tiker> response) {
+                                        if (response.isSuccessful() && response.body() != null) {
+                                            String indodaxPrice = response.body().getTicker().getBuy(); // Modify accordingly
+
+                                            lunoCall.enqueue(new Callback<OrderbookLN>() {
+                                                @Override
+                                                public void onResponse(Call<OrderbookLN> call, Response<OrderbookLN> response) {
+                                                    if (response.isSuccessful() && response.body() != null) {
+                                                        String lunoPrice = response.body().getBid();
+
+                                                        rekuCall.enqueue(new Callback<OrderbookRK>() {
+                                                            @Override
+                                                            public void onResponse(Call<OrderbookRK> call, Response<OrderbookRK> response) {
+                                                                if (response.isSuccessful() && response.body() != null) {
+                                                                    String rekuPrice = response.body().getB().get(0).get(1);
+                                                                    int logoResid=getLogoResId(upbitPair);
+                                                                    combinedPriceList.add(new Combine(upbitPair, indodaxPrice, tokocryptoPrice, upbitPrice, lunoPrice, rekuPrice,logoResid));
+
+
+                                                                    adapterss.notifyDataSetChanged();
+
+                                                                } else {
+                                                                    Toast.makeText(MainActivity.this, "Failed to load reku data for " + rekuPair, Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+
+                                                            @Override
+                                                            public void onFailure(@NonNull Call<OrderbookRK> call, @NonNull Throwable t) {
+                                                                Toast.makeText(MainActivity.this, "LUNO API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        });
+
+                                                                    Toast.makeText(MainActivity.this, "Failed to LUNO  data for " + lunoPair, Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+
+                                                            @Override
+                                                            public void onFailure(@NonNull Call<OrderbookLN> call, @NonNull Throwable t) {
+                                                                Toast.makeText(MainActivity.this, "Indodax API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                                            }
+                                                        });
+                                                    } else {
+                                                        Toast.makeText(MainActivity.this, "Failed to load Indodax data for " + indodaxPair, Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+
+                                                @Override
+                                                public void onFailure(@NonNull Call<Tiker> call, @NonNull Throwable t) {
+                                                    Toast.makeText(MainActivity.this, "Tokocrypto API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                                }
+                                            });
+                                        } else {
+                                            Toast.makeText(MainActivity.this, "Failed to load Tokocrypto data for " + tokocryptoPair, Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(@NonNull Call<OrderbookTKO> call, @NonNull Throwable t) {
+                                        Toast.makeText(MainActivity.this, "UPBIT API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                             } else {
-                                Toast.makeText(MainActivity.this, "Failed to load Tokocrypto data for " + tokocryptoPair, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "Failed to load UPBIT data for " + upbitPair, Toast.LENGTH_SHORT).show();
                             }
                         }
 
                         @Override
-                        public void onFailure(@NonNull Call<OrderbookTKO> call, @NonNull Throwable t) {
-                            Toast.makeText(MainActivity.this, "Tokocrypto API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        public void onFailure(@NonNull Call<ArrayList<Orderbook>> call, @NonNull Throwable t) {
+                            Toast.makeText(MainActivity.this, "UPBIT API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
-                } else {
-                    Toast.makeText(MainActivity.this, "Failed to load UPBIT data for " + upbitPair, Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(@NonNull Call<ArrayList<Orderbook>> call, @NonNull Throwable t) {
-                Toast.makeText(MainActivity.this, "UPBIT API error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
     }
-
+    private int getLogoResId(String coinPair) {
+        switch (coinPair) {
+            case "IDR-BTC":
+                return R.drawable.btc;
+            case "IDR-ETH":
+                return R.drawable.eth;
+            case "IDR-SOL":
+                return R.drawable.sol;
+            default:
+                return R.drawable.cwbtc;
+        }
+    }
     //---LUNO
-    private void getLUNOprc() {
-        for (String lunoCryptoPair : LUNO_PAIRS) {
-            getHrgLUNO(lunoCryptoPair);
-        }
-    }
-    private void getHrgLUNO(String lunoCryptoPair) {
-        interfaceLUNO.getPriceLUNO(lunoCryptoPair).enqueue(new Callback<OrderbookLN>() {
-
-            @Override
-            public void onResponse(@NonNull Call<OrderbookLN>call, Response<OrderbookLN> response) {
-                if (response.isSuccessful()) {
-                    try {
-                        OrderbookLN orderbookLN = response.body();
-
-                        // Check for data availability
-                        if (orderbookLN != null && orderbookLN.getStatus().equals("ACTIVE") ) {
-                            if (lunoCryptoPair.equals("XBTIDR")) {
-                                String askPrice = orderbookLN.getAsk();
-                                tx7.setText("LUNO BTC: " + askPrice); // Update specific TextView
-                            }
-                            if ( lunoCryptoPair.equals("ETHIDR")) {
-                                String askPrice = orderbookLN.getAsk();
-                                tx8.setText("LUNO ETH: " + askPrice);
-                            }
-                            if (lunoCryptoPair.equals("SOLIDR")) {
-                                String askPrice = orderbookLN.getAsk();
-                                tx9.setText("LUNO SOL: " + askPrice);
-                            }
-                        } else {
-                            Toast.makeText(MainActivity.this, "Data Kosong untuk " + lunoCryptoPair, LENGTH_SHORT).show();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + lunoCryptoPair, LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<OrderbookLN> call, Throwable t) {
-                tx5.setText("error"+t.getMessage());
-            }
-        });
-    }
-    //---TOKOCRYPTO
-    private void getTKOPrices() {
-        for (String tkoCryptoPair : TOKOCRYPTO_PAIRS) {
-            getHrgTKO(tkoCryptoPair);
-        }
-    }
-        private void getHrgTKO(String tkoCryptoPair) {
-            interfaceTKO.getTKO(tkoCryptoPair,5).enqueue(new Callback<OrderbookTKO>() {
-
-                @Override
-                public void onResponse(@NonNull Call<OrderbookTKO>call, Response<OrderbookTKO> response) {
-                    if (response.isSuccessful()) {
-                        try {
-                            OrderbookTKO orderbookTKO = response.body();
-
-                            // Check for data availability
-                            if (orderbookTKO != null && orderbookTKO.getData() !=null ) {
-                                if (tkoCryptoPair.equals("BTC_IDR")) {
-                                    String askPrice = orderbookTKO.getData().getBids().get(0).get(0);
-                                    tx10.setText("TKO BTC: " + askPrice); // Update specific TextView
-                                }
-                                if ( tkoCryptoPair.equals("ETH_IDR")) {
-                                    String askPrice = orderbookTKO.getData().getBids().get(0).get(0);
-                                    tx11.setText("TKO ETH: " + askPrice);
-                                }
-                                if (tkoCryptoPair.equals("SOL_IDR")) {
-                                    String askPrice = orderbookTKO.getData().getBids().get(0).get(0);
-                                    tx12.setText("TKO SOL: " + askPrice);
-                                }
-                            } else {
-                                Toast.makeText(MainActivity.this, "Data Kosong untuk " + tkoCryptoPair, LENGTH_SHORT).show();
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + tkoCryptoPair, LENGTH_SHORT).show();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<OrderbookTKO> call, Throwable t) {
-                    tx5.setText("error"+t.getMessage());
-                }
-            });
-        }
-
-    //---REKU
-    private void getREKUprc() {
-        for (String rekuCryptoPair : REKU_PAIRS) {
-            getHrgREKU(rekuCryptoPair);
-        }
-    }
-    private void getHrgREKU(String rekuCryptoPair) {
-        interfaceRKU.getPriceRKu(rekuCryptoPair).enqueue(new Callback<OrderbookRK>() {
-
-            @Override
-            public void onResponse(@NonNull Call<OrderbookRK> call, Response<OrderbookRK> response) {
-                if (response.isSuccessful()) {
-                    try {
-                        OrderbookRK orderbookRK = response.body();
-
-                        // Check for data availability
-                        if (orderbookRK != null && orderbookRK.getS()!=null){
-                            if (rekuCryptoPair.equals("1")) {
-                                String askPrice = orderbookRK.getS().get(0).get(1);
-                                tx13.setText("REKU BTC: " + askPrice); // Update specific TextView
-                            }
+//    private void getLUNOprc() {
+//        for (String lunoCryptoPair : LUNO_PAIRS) {
+//            getHrgLUNO(lunoCryptoPair);
+//        }
+//    }
+//    private void getHrgLUNO(String lunoCryptoPair) {
+//        interfaceLUNO.getPriceLUNO(lunoCryptoPair).enqueue(new Callback<OrderbookLN>() {
+//
+//            @Override
+//            public void onResponse(@NonNull Call<OrderbookLN>call, Response<OrderbookLN> response) {
+//                if (response.isSuccessful()) {
+//                    try {
+//                        OrderbookLN orderbookLN = response.body();
+//
+//                        // Check for data availability
+//                        if (orderbookLN != null && orderbookLN.getStatus().equals("ACTIVE") ) {
+//                            if (lunoCryptoPair.equals("XBTIDR")) {
+//                                String askPrice = orderbookLN.getAsk();
+//                                tx7.setText("LUNO BTC: " + askPrice); // Update specific TextView
+//                            }
 //                            if ( lunoCryptoPair.equals("ETHIDR")) {
 //                                String askPrice = orderbookLN.getAsk();
 //                                tx8.setText("LUNO ETH: " + askPrice);
@@ -277,22 +249,117 @@ public class MainActivity extends AppCompatActivity {
 //                                String askPrice = orderbookLN.getAsk();
 //                                tx9.setText("LUNO SOL: " + askPrice);
 //                            }
-                        } else {
-                            Toast.makeText(MainActivity.this, "Data Kosong untuk " + rekuCryptoPair, LENGTH_SHORT).show();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + rekuCryptoPair, LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<OrderbookRK> call, Throwable t) {
-                tx5.setText("error" + t.getMessage());
-            }
-        });
-    }
+//                        } else {
+//                            Toast.makeText(MainActivity.this, "Data Kosong untuk " + lunoCryptoPair, LENGTH_SHORT).show();
+//                        }
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                        Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
+//                    }
+//                } else {
+//                    Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + lunoCryptoPair, LENGTH_SHORT).show();
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<OrderbookLN> call, Throwable t) {
+//                tx5.setText("error"+t.getMessage());
+//            }
+//        });
+//    }
+//    //---TOKOCRYPTO
+//    private void getTKOPrices() {
+//        for (String tkoCryptoPair : TOKOCRYPTO_PAIRS) {
+//            getHrgTKO(tkoCryptoPair);
+//        }
+//    }
+//        private void getHrgTKO(String tkoCryptoPair) {
+//            interfaceTKO.getTKO(tkoCryptoPair,5).enqueue(new Callback<OrderbookTKO>() {
+//
+//                @Override
+//                public void onResponse(@NonNull Call<OrderbookTKO>call, Response<OrderbookTKO> response) {
+//                    if (response.isSuccessful()) {
+//                        try {
+//                            OrderbookTKO orderbookTKO = response.body();
+//
+//                            // Check for data availability
+//                            if (orderbookTKO != null && orderbookTKO.getData() !=null ) {
+//                                if (tkoCryptoPair.equals("BTC_IDR")) {
+//                                    String askPrice = orderbookTKO.getData().getBids().get(0).get(0);
+//                                    tx10.setText("TKO BTC: " + askPrice); // Update specific TextView
+//                                }
+//                                if ( tkoCryptoPair.equals("ETH_IDR")) {
+//                                    String askPrice = orderbookTKO.getData().getBids().get(0).get(0);
+//                                    tx11.setText("TKO ETH: " + askPrice);
+//                                }
+//                                if (tkoCryptoPair.equals("SOL_IDR")) {
+//                                    String askPrice = orderbookTKO.getData().getBids().get(0).get(0);
+//                                    tx12.setText("TKO SOL: " + askPrice);
+//                                }
+//                            } else {
+//                                Toast.makeText(MainActivity.this, "Data Kosong untuk " + tkoCryptoPair, LENGTH_SHORT).show();
+//                            }
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                            Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
+//                        }
+//                    } else {
+//                        Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + tkoCryptoPair, LENGTH_SHORT).show();
+//                    }
+//                }
+//
+//                @Override
+//                public void onFailure(Call<OrderbookTKO> call, Throwable t) {
+//                    tx5.setText("error"+t.getMessage());
+//                }
+//            });
+//        }
+//
+//    //---REKU
+//    private void getREKUprc() {
+//        for (String rekuCryptoPair : REKU_PAIRS) {
+//            getHrgREKU(rekuCryptoPair);
+//        }
+//    }
+//    private void getHrgREKU(String rekuCryptoPair) {
+//        interfaceRKU.getPriceRKu(rekuCryptoPair).enqueue(new Callback<OrderbookRK>() {
+//
+//            @Override
+//            public void onResponse(@NonNull Call<OrderbookRK> call, Response<OrderbookRK> response) {
+//                if (response.isSuccessful()) {
+//                    try {
+//                        OrderbookRK orderbookRK = response.body();
+//
+//                        // Check for data availability
+//                        if (orderbookRK != null && orderbookRK.getS()!=null){
+//                            if (rekuCryptoPair.equals("1")) {
+//                                String askPrice = orderbookRK.getS().get(0).get(1);
+//                                tx13.setText("REKU BTC: " + askPrice); // Update specific TextView
+//                            }
+////                            if ( lunoCryptoPair.equals("ETHIDR")) {
+////                                String askPrice = orderbookLN.getAsk();
+////                                tx8.setText("LUNO ETH: " + askPrice);
+////                            }
+////                            if (lunoCryptoPair.equals("SOLIDR")) {
+////                                String askPrice = orderbookLN.getAsk();
+////                                tx9.setText("LUNO SOL: " + askPrice);
+////                            }
+//                        } else {
+//                            Toast.makeText(MainActivity.this, "Data Kosong untuk " + rekuCryptoPair, LENGTH_SHORT).show();
+//                        }
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                        Toast.makeText(MainActivity.this, "Error parsing data", LENGTH_SHORT).show();
+//                    }
+//                } else {
+//                    Toast.makeText(MainActivity.this, "Gagal memuat data untuk " + rekuCryptoPair, LENGTH_SHORT).show();
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<OrderbookRK> call, Throwable t) {
+//                tx5.setText("error" + t.getMessage());
+//            }
+//        });
+//    }
 }

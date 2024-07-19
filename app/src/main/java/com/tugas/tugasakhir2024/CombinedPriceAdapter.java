@@ -3,6 +3,7 @@ package com.tugas.tugasakhir2024;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -20,7 +21,7 @@ public class CombinedPriceAdapter extends RecyclerView.Adapter<CombinedPriceAdap
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.adapter_note, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_combine, parent, false);
         return new ViewHolder(view);
     }
 
@@ -28,8 +29,12 @@ public class CombinedPriceAdapter extends RecyclerView.Adapter<CombinedPriceAdap
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Combine combine = combinedPriceList.get(position);
         holder.pairTextView.setText(combine.getPair());
-        holder.upbitPriceTextView.setText("UPBIT: " + combine.getUpbitPrice());
-        holder.tokocryptoPriceTextView.setText("TOKOCRYPTO: " + combine.getTokocryptoPrice());
+        holder.primeryPriceTextView.setText("INDODAX: " + combine.getUpbitPrice());
+        holder.scmarketPriceTextView.setText("TOKOCRYPTO: " + combine.getTokocryptoPrice());
+        holder.trmarketPriceTextView.setText("UPBIT: " + combine.getIndodaxPrice());
+        holder.frmarketPriceTextView.setText("LUNO: " + combine.getLunoPrice());
+        holder.fevmarketPriceTextView.setText("REKU: " + combine.getRekuPrice());
+        holder.ivBackground.setImageResource(combine.getLogoResId());
     }
 
     @Override
@@ -38,15 +43,17 @@ public class CombinedPriceAdapter extends RecyclerView.Adapter<CombinedPriceAdap
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        private TextView pairTextView;
-        private TextView upbitPriceTextView;
-        private TextView tokocryptoPriceTextView;
-
+        private TextView pairTextView, primeryPriceTextView, scmarketPriceTextView, trmarketPriceTextView, frmarketPriceTextView, fevmarketPriceTextView;
+        ImageView ivBackground;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            pairTextView = itemView.findViewById(R.id.marketId);
-            upbitPriceTextView = itemView.findViewById(R.id.koinId);
-            tokocryptoPriceTextView = itemView.findViewById(R.id.hargaId);
+            pairTextView = itemView.findViewById(R.id.pairTextView);
+            primeryPriceTextView = itemView.findViewById(R.id.upbitPriceTextView);
+            scmarketPriceTextView = itemView.findViewById(R.id.tokocryptoPriceTextView);
+            trmarketPriceTextView = itemView.findViewById(R.id.indodaxPriceTextView);
+            frmarketPriceTextView = itemView.findViewById(R.id.lunoPriceTextView);
+            fevmarketPriceTextView = itemView.findViewById(R.id.rekuPriceTextView);
+            ivBackground = itemView.findViewById(R.id.ivBackground);
         }
     }
 }
