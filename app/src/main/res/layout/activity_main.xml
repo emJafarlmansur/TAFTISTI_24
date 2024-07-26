@@ -7,8 +7,6 @@
     android:backgroundTintMode="multiply"
     android:background="@android:color/system_accent1_50">
 
-
-
     <LinearLayout
         android:id="@+id/button_container"
         android:layout_width="wrap_content"
@@ -72,7 +70,12 @@
             app:layout_constraintBottom_toTopOf="@+id/risaikelKoin"
             app:layout_constraintTop_toBottomOf="@+id/button_container"></TextView>
     </LinearLayout>
-
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:visibility="gone" />
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="2dp"
@@ -90,4 +93,5 @@
         app:layout_constraintTop_toBottomOf="@+id/RCHeader"
         tools:itemCount="2"
         tools:listitem="@layout/item_combine" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -23,6 +23,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="SOL/IDR" />
+    <CheckBox
+        android:id="@+id/adaCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ADA/IDR" />
+
+    <CheckBox
+        android:id="@+id/maticCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="MATIC/IDR" />
+
+    <CheckBox
+        android:id="@+id/usdtCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="USDT/IDR" />
 
     <Button
         android:id="@+id/saveButton"

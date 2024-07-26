@@ -1,9 +1,10 @@
 package com.tugas.tugasakhir2024;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,11 +37,11 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String[] INDODAX_PAIRS = {"btcidr", "ethidr", "solidr"};
-    private static final String[] UPBIT_PAIRS = {"IDR-BTC", "IDR-ETH", "IDR-SOL"};
-    private static final String[] LUNO_PAIRS = {"XBTIDR", "ETHIDR", "SOLIDR"};
-    private static final String[] TOKOCRYPTO_PAIRS = {"BTC_IDR","ETH_IDR","SOL_IDR"};
-    private static final String[] REKU_PAIRS = {"1","4","51"};
+    private static final String[] INDODAX_PAIRS = {"btcidr", "ethidr", "solidr","adaidr","maticidr","usdtidr"};
+    private static final String[] UPBIT_PAIRS = {"IDR-BTC", "IDR-ETH", "IDR-SOL","IDR-ADA","IDR-MATIC","IDR-USDT"};
+    private static final String[] LUNO_PAIRS = {"XBTIDR", "ETHIDR", "SOLIDR","ADAIDR","MATICIDR","USDTIDR"};
+    private static final String[] TOKOCRYPTO_PAIRS = {"BTC_IDR","ETH_IDR","SOL_IDR","ADA_IDR","MATIC_IDR","USDT_IDR"};
+    private static final String[] REKU_PAIRS = {"1","4","51","49","23","20"};
 
     private static InterfaceTKO interfaceTKO= ApiClientTKO.getClient().create(InterfaceTKO.class);
     private static InterfaceREKU interfaceRKU= ApiClientREKU.getClient().create(InterfaceREKU.class);
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private Button scanButton;
     private Button settingsButton;
     private SharedPreferences sharedPreferences;
+    private ProgressBar progressBar;
 
 
 
@@ -68,11 +70,18 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(adapterss);
         scanButton = findViewById(R.id.scan_button);
         settingsButton = findViewById(R.id.settings_button);
-        scanButton.setOnClickListener(v -> fetchPrices());
+        progressBar = findViewById(R.id.progressBar);
+        scanButton.setOnClickListener(v ->
+        {
+            progressBar.setVisibility(View.VISIBLE);
+            fetchPrices();
+
+        });
 
         settingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, Pengaturan.class);
             startActivity(intent);
+
         });
 //        tx1 = findViewById(R.id.tx1);
 //        tx2 = findViewById(R.id.tx2);
@@ -156,9 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                                                                     adapterss.notifyDataSetChanged();
-
-                                                                } else {
-                                                                    Toast.makeText(MainActivity.this, "Failed to load reku data for " + rekuPair, Toast.LENGTH_SHORT).show();
+                                                                    progressBar.setVisibility(View.GONE);
                                                                 }
                                                             }
 
@@ -216,6 +223,12 @@ public class MainActivity extends AppCompatActivity {
                 return R.drawable.eth;
             case "IDR-SOL":
                 return R.drawable.sol;
+            case "IDR-ADA":
+                return R.drawable.ada;
+            case "IDR-MATIC":
+                return R.drawable.matic;
+            case "IDR-USDT":
+                return R.drawable.usdt;
             default:
                 return R.drawable.cwbtc;
         }
